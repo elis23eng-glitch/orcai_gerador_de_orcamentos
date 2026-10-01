@@ -1,4 +1,5 @@
-import { bigint, date, integer, numeric, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import type { Company } from '../company'
+import { bigint, jsonb, date, integer, numeric, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 export const clientes = pgTable('clientes', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -16,6 +17,8 @@ export const clientes = pgTable('clientes', {
 
 export const orcamentos = pgTable('orcamentos', {
   id: uuid('id').primaryKey().defaultRandom(),
+  empresaSnapshot: jsonb('empresa_snapshot').$type<Company>(),
+  shareToken: text('share_token').unique(),
   numero: text('numero').notNull().unique(),
   clienteId: uuid('cliente_id')
     .notNull()
@@ -46,3 +49,5 @@ export const itensOrcamento = pgTable('itens_orcamento', {
   unidade: text('unidade').notNull().default('un'),
   valorUnitarioCentavos: bigint('valor_unitario_centavos', { mode: 'number' }).notNull().default(0),
 })
+
+export const empresa = pgTable('empresa', { id: integer('id').primaryKey(), dados: jsonb('dados').$type<Company>().notNull() })

@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { EMPTY_COMPANY, type Company } from '@/lib/company'
+import { CompanyCard } from './company-card'
 import useSWR from 'swr'
 import { Eye, Loader2, PencilLine, Save } from 'lucide-react'
 import { toast } from 'sonner'
@@ -30,6 +32,12 @@ export function QuoteApp({ initialProposals }: { initialProposals: Proposal[] })
   const [draft, setDraft] = useState<Proposal>(
     () => initialProposals[0] ?? createEmptyProposal(initialProposals),
   )
+  const { data: company = EMPTY_COMPANY, mutate: mutateCompany } = useSWR<Company>('/api/company', async (url: string) => {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error('Falha ao carregar empresa')
+    return res.json()
+  })
+  const [showCompany, setShowCompany] = useState(false)
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
   const [view, setView] = useState<View>('form')
@@ -75,6 +83,7 @@ export function QuoteApp({ initialProposals }: { initialProposals: Proposal[] })
       setView('form')
       return false
     }
+    if (!company.name) { setShowCompany(true); toast.error('Cadastre a empresa antes de salvar.'); return false }
     setSaving(true)
     try {
       const res = await fetch('/api/proposals', {
@@ -135,6 +144,7 @@ export function QuoteApp({ initialProposals }: { initialProposals: Proposal[] })
             <StatusBadge status={draft.status} />
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" onClick={() => setShowCompany(!showCompany)}>Cadastrar / editar empresa</Button>
             <Tabs value={view} onValueChange={(v) => setView(v as View)} className="2xl:hidden">
               <TabsList>
                 <TabsTrigger value="form">
@@ -158,6 +168,7 @@ export function QuoteApp({ initialProposals }: { initialProposals: Proposal[] })
           </div>
         </header>
 
+        {showCompany && <div className="p-4 sm:p-6"><CompanyCard company={company} onSaved={(value) => { mutateCompany(value, false); setShowCompany(false) }} /></div>}
         <div className="grid gap-6 p-4 sm:p-6 2xl:grid-cols-[minmax(0,1fr)_minmax(0,620px)]">
           <div
             className={cn(
@@ -186,7 +197,7 @@ export function QuoteApp({ initialProposals }: { initialProposals: Proposal[] })
               view === 'preview' ? 'block' : 'hidden 2xl:block',
             )}
           >
-            <PreviewPanel proposal={draft} onSave={save} saving={saving} />
+            <PreviewPanel key={draft.id} proposal={{ ...draft, company }} onSave={save} saving={saving} />
           </div>
         </div>
       </main>

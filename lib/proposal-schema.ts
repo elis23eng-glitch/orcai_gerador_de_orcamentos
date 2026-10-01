@@ -1,13 +1,14 @@
 import { z } from 'zod'
-import { PROJECT_TYPES, STATUSES, UNITS } from './quote'
+import { PROJECT_TYPES, STATUSES, UNITS, computeTotals, parseQuantity } from './quote'
 
 const text = (max: number) => z.string().trim().max(max)
-const numericText = z.string().trim().max(10).regex(/^[\d.,]*$/, 'Valor numérico inválido')
+const numericText = z.string().trim().max(14).regex(/^(?:\d+(?:[.,]\d{1,2})?)?$/, 'Use um número com até duas casas decimais')
+const percentText = numericText.refine(v => !v || Number(v.replace(',', '.')) <= 100, 'Percentual deve estar entre 0 e 100')
 
 export const proposalSchema = z.object({
   id: z.uuid(),
   number: text(40).min(1, 'Número da proposta obrigatório'),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
+  date: z.iso.date('Data inválida'),
   status: z.enum(STATUSES),
   projectType: z.enum(PROJECT_TYPES),
   client: z.object({
@@ -26,7 +27,7 @@ export const proposalSchema = z.object({
       z.object({
         id: z.uuid(),
         service: text(300),
-        quantity: numericText,
+        quantity: numericText.refine(v => parseQuantity(v) <= 9_999_999_999.99, 'Quantidade muito alta'),
         unit: z.enum(UNITS),
         unitPriceCents: z.number().int().min(0).max(99_999_999_999),
       }),
@@ -37,9 +38,9 @@ export const proposalSchema = z.object({
     deadlineDays: z.string().trim().regex(/^\d{0,4}$/, 'Prazo inválido'),
     validityDays: z.string().trim().regex(/^\d{0,4}$/, 'Validade inválida'),
   }),
-  taxPct: numericText,
-  bdiPct: numericText,
+  taxPct: percentText,
+  bdiPct: percentText,
   notes: text(2000),
-})
+}).refine(p => Number.isSafeInteger(computeTotals(p.items, p.taxPct, p.bdiPct).total), 'O total excede o limite permitido')
 
 export type ProposalInput = z.infer<typeof proposalSchema>

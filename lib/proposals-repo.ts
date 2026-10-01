@@ -1,3 +1,4 @@
+import { getCompany } from './company-repo'
 import { asc, desc, eq, inArray } from 'drizzle-orm'
 import { db } from './db'
 import { clientes, itensOrcamento, orcamentos } from './db/schema'
@@ -28,11 +29,12 @@ function intOrNull(value: string) {
 const isOneOf = <T extends string>(list: readonly T[], v: string): v is T =>
   (list as readonly string[]).includes(v)
 
-export async function listProposals(limit = 50): Promise<Proposal[]> {
+export async function listProposals(limit = 50, id?: string): Promise<Proposal[]> {
   const rows = await db
     .select({ o: orcamentos, c: clientes })
     .from(orcamentos)
     .innerJoin(clientes, eq(orcamentos.clienteId, clientes.id))
+    .where(id ? eq(orcamentos.id, id) : undefined)
     .orderBy(desc(orcamentos.data), desc(orcamentos.numero))
     .limit(limit)
 
@@ -63,6 +65,7 @@ export async function listProposals(limit = 50): Promise<Proposal[]> {
   }
 
   return rows.map(({ o, c }) => ({
+    company: o.empresaSnapshot ?? undefined,
     id: o.id,
     number: o.numero,
     date: o.data,
@@ -110,7 +113,10 @@ export async function saveProposal(input: ProposalInput) {
     endereco: input.client.address,
   }
 
+  const company = await getCompany()
+  if (!company.name) throw new Error("Cadastre a empresa antes de salvar a proposta.")
   const proposalValues = {
+    empresaSnapshot: company,
     numero: input.number,
     clienteId: input.client.id,
     data: input.date,
