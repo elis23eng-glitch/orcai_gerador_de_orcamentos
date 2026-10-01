@@ -1,3 +1,4 @@
+import type { Company } from './company'
 export type ProposalStatus = 'pendente' | 'aprovado' | 'concluido'
 export const STATUSES = ['pendente', 'aprovado', 'concluido'] as const
 
@@ -78,6 +79,7 @@ export interface Client {
 }
 
 export interface Proposal {
+  company?: Company
   id: string
   number: string
   date: string
@@ -235,14 +237,4 @@ export function createEmptyProposal(existing: Proposal[]): Proposal {
     bdiPct: '',
     notes: '',
   }
-}
-
-export const COMPANY = {
-  name: 'Prisma Reformas',
-  tagline: 'Reformas & Acabamentos Residenciais',
-  cnpj: '32.418.905/0001-67',
-  phone: '(11) 98765-4321',
-  email: 'contato@prismareformas.com.br',
-  site: 'prismareformas.com.br',
-  address: 'Rua das Palmeiras, 480 — Vila Mariana, São Paulo/SP',
 }

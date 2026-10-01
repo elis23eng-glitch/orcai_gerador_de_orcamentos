@@ -1,6 +1,6 @@
+import { EMPTY_COMPANY } from '@/lib/company'
 import { Hexagon } from 'lucide-react'
 import {
-  COMPANY,
   PROJECT_TYPE_LABELS,
   addDays,
   computeTotals,
@@ -15,6 +15,7 @@ import {
 const qty = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
 
 export function ProposalSheet({ proposal }: { proposal: Proposal }) {
+  const COMPANY = proposal.company ?? EMPTY_COMPANY
   const { client, terms } = proposal
   const isPJ = client.type === 'PJ'
   const items = proposal.items.filter((i) => i.service.trim() || i.unitPriceCents > 0)
@@ -34,7 +35,7 @@ export function ProposalSheet({ proposal }: { proposal: Proposal }) {
         <div className="flex items-center gap-3">
           <div className="relative flex size-11 items-center justify-center rounded-md bg-[#1e2a4a] text-white">
             <Hexagon className="size-6" strokeWidth={1.75} aria-hidden="true" />
-            <span className="absolute text-[11px] font-bold">P</span>
+            <span className="absolute text-[11px] font-bold">{COMPANY.name.charAt(0) || "O"}</span>
           </div>
           <div className="leading-tight">
             <p className="text-base font-bold tracking-tight text-[#1e2a4a]">{COMPANY.name}</p>
