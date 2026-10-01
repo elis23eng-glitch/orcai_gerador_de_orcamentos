@@ -1,7 +1,10 @@
 import { Pool } from 'pg'
 import { readdir, readFile } from 'node:fs/promises'
-if (!process.env.DATABASE_URL) throw new Error('Configure DATABASE_URL em .env.local')
-const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+if (!process.env.DATABASE_URL) {
+ console.error('Migrações não executadas: configure DATABASE_URL em .env.local ou no ambiente. Nenhum banco foi alterado.')
+ process.exit(1)
+}
+const pool = new Pool({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 10000 })
 const client = await pool.connect()
 try {
   await client.query('BEGIN')

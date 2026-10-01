@@ -2,6 +2,10 @@
 
 Aplicação para pequenos construtores e profissionais autônomos elaborarem propostas de obras e reformas. Desenvolvida com Next.js, React, TypeScript, Tailwind CSS, PostgreSQL e Drizzle ORM.
 
+## Entrada da aplicação
+
+A página inicial é `app/page.tsx`, que carrega `components/quote/quote-app.tsx`. `app/layout.tsx` define o layout global. Este projeto usa o App Router do Next.js e não precisa de um `index.html` ou `index.js` na raiz. Para abrir a aplicação, use `pnpm dev` ou publique em um provedor com suporte a Next.js e PostgreSQL; GitHub Pages não executa a API nem a conexão ao banco.
+
 ## Funcionalidades
 
 - Cadastro da empresa emissora, clientes PF/PJ, serviços, impostos, BDI e condições comerciais.
